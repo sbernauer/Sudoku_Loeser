@@ -5,7 +5,14 @@ import utilities.FieldUtilities;
 
 import java.util.List;
 
-public class BruteForcing1 implements BruteForceStrategy {
+public class BruteForcer implements BruteForceStrategy, Runnable {
+    private int tiefe;
+    private Thread thread;
+
+    public BruteForcer() {
+        thread = new Thread(this);
+        thread.start();
+    }
 
     @Override
     public int[][] bruteForce(int[][] field) {
@@ -15,6 +22,7 @@ public class BruteForcing1 implements BruteForceStrategy {
 
         BruteForceUtilities.setNumberForAllBruceForceFields(field, bruteForceFields, 1);
 
+        // This loop wil try EVERY combination of the bruceForceFields until a solution is found
         do {
             int i = 0;
             do {
@@ -25,10 +33,28 @@ public class BruteForcing1 implements BruteForceStrategy {
                 } else {
                     break;
                 }
+                tiefe = Math.max(tiefe, i);
             } while (i < bruteForceFields.size());
+            if (i >= bruteForceFields.size()) {
+                //TODO Error, because there was no possible combination, so that the sudoku was correct
+            }
 
         } while (!FieldUtilities.isValidSudoku(field));
 
+        thread.stop();
+
         return field;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                System.out.println("Tiefe: " + tiefe);
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

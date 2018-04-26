@@ -1,6 +1,6 @@
 package utilities;
 
-import core.InvalidSudokuException;
+import core.DoubledNumberException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -25,7 +25,7 @@ public class FieldUtilities {
         Set<Integer> foundNumbers = new HashSet<>();
         for (int i = 0; i < 9; i++) {
             if (checkForDuplicates && field[row][i] != -1 && foundNumbers.contains(field[row][i])) {
-                throw new InvalidSudokuException("Doppelte Zahl " + field[row][i] + " an Position " + row + ", " + i);
+                throw new DoubledNumberException(field[row][i], row, i);
             }
             foundNumbers.add(field[row][i]);
         }
@@ -36,7 +36,7 @@ public class FieldUtilities {
         Set<Integer> foundNumbers = new HashSet<>();
         for (int i = 0; i < 9; i++) {
             if (checkForDuplicates && field[i][column] != -1 && foundNumbers.contains(field[i][column])) {
-                throw new InvalidSudokuException("Doppelte Zahl " + field[i][column] + " an Position " + i + ", " + column);
+                throw new DoubledNumberException(field[i][column], i, column);
             }
             foundNumbers.add(field[i][column]);
         }
@@ -51,7 +51,7 @@ public class FieldUtilities {
         for (int x = blockStartX; x < blockStartX + 3; x++) {
             for (int y = blockStartY; y < blockStartY + 3; y++) {
                 if (checkForDuplicates && field[x][y] != -1 && foundNumbers.contains(field[x][y])) {
-                    throw new InvalidSudokuException("Doppelte Zahl " + field[x][y] + " an Position " + x + ", " + y);
+                    throw new DoubledNumberException(field[x][y], x, y);
                 }
                 foundNumbers.add(field[x][y]);
             }
@@ -136,9 +136,9 @@ public class FieldUtilities {
 
     /**
      * @param field the sudoku-field
-     * @throws InvalidSudokuException if the sudoku is invalid, the cause is given in the message
+     * @throws DoubledNumberException if the sudoku is invalid, the cause is given in the message
      */
-    public static void checkForValidSudoku(int[][] field) throws InvalidSudokuException {
+    public static void checkForValidSudoku(int[][] field) throws DoubledNumberException {
         for (int i = 0; i < 9; i++) {
             getNumbersInRow(field, i, true);
             getNumbersInColumn(field, i, true);
@@ -154,7 +154,7 @@ public class FieldUtilities {
         try { //TODO Fix this dirty shit
             checkForValidSudoku(field);
             return true;
-        } catch (InvalidSudokuException e) {
+        } catch (DoubledNumberException e) {
             return false;
         }
     }
@@ -170,15 +170,20 @@ public class FieldUtilities {
         return true;
     }
 
-    public static boolean isSudokuCompletelyFilled(int[][] field) {
+    public static int getAmountOfEmptyFields(int[][] field) {
+        int counter = 0;
         for (int x = 0; x < 9; x++) {
             for (int y = 0; y < 9; y++) {
                 if (field[x][y] == -1) {
-                    return false;
+                    counter++;
                 }
             }
         }
-        return true;
+        return counter;
+    }
+
+    public static boolean isSudokuCompletelyFilled(int[][] field) {
+        return getAmountOfEmptyFields(field) == 0;
     }
 
     public static int[][] getEmptyField() {

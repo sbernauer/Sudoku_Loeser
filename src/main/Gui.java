@@ -1,5 +1,6 @@
 package main;
 
+import core.DoubledNumberException;
 import core.GuiParser;
 import core.ParseExeption;
 import core.Solver;
@@ -8,6 +9,7 @@ import utilities.SudokuDigitInputVerifier;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
+import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -18,9 +20,12 @@ public class Gui extends JFrame {
 
     private JTextField[][] sudokuTextFields = new JTextField[FIELD_SIZE][FIELD_SIZE];
     private int[][] originalInput = FieldUtilities.getEmptyField();
+    private boolean[][] markedFields = new boolean[FIELD_SIZE][FIELD_SIZE];
 
-    public Gui() {
+    private JPanel bottomPanel;
+    private JLabel lbWarning;
 
+    Gui() {
         initLayout();
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -45,25 +50,37 @@ public class Gui extends JFrame {
         initFieldsOfSudokuPanel(sudokuPanel);
         this.add(sudokuPanel, BorderLayout.CENTER);
 
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new GridLayout(2, 2, 10, 5));
-        JButton btLoesen = new JButton("Sudoku lösen");
-        btLoesen.addActionListener(this::solveCompleteSudoku);
-        bottomPanel.add(btLoesen);
-        bottomPanel.add(new JButton("Markierte Felder lösen"));
-        bottomPanel.add(new JButton("Direkt berechenbare Felder anzeigen"));
+        bottomPanel = new JPanel();
+        bottomPanel.setLayout(new GridLayout(0, 1, 0, 5));
+        JPanel buttonsPanel = new JPanel();
+        buttonsPanel.setLayout(new GridLayout(2, 2, 10, 5));
+        JButton btLoesen = new JButton("<html><center>Sudoku<br>lösen</center></html>");
+        btLoesen.addActionListener(event1 -> solveCompleteSudoku());
+        buttonsPanel.add(btLoesen);
+        JButton btMarkierteFelderLoesen = new JButton("<html><center>Markierte Felder<br>lösen</center></html>");
+        btMarkierteFelderLoesen.addActionListener(event2 -> markierteFelderLoesen());
+        buttonsPanel.add(btMarkierteFelderLoesen);
+        JButton btDirektLoesbarAnzeigen = new JButton("<html><center>Direkt berechenbare<br>Felder anzeigen</center></html>");
+        btDirektLoesbarAnzeigen.addActionListener(event1 -> direktLoesbarAnzeigen());
+        buttonsPanel.add(btDirektLoesbarAnzeigen);
+        JButton btLeeren = new JButton("<html><center>Sudoku-Feld<br>leeren</center></html>");
+        btLeeren.addActionListener(event -> sudokuFeldLeeren());
+        buttonsPanel.add(btLeeren);
+        JButton btSpeichern = new JButton("<html><center>Sudoku<br>speichern</center></html>");
+        btSpeichern.addActionListener(event -> speichern());
+        buttonsPanel.add(btSpeichern);
+        JButton btLaden = new JButton("<html><center>Sudoku<br>laden</center></html>");
+        btLaden.addActionListener(event -> laden());
+        buttonsPanel.add(btLaden);
+        JButton btbBildLaden = new JButton("<html><center>Sudoku von<br>Bild laden</center></html>");
+        btbBildLaden.addActionListener(event -> bildLaden());
+        buttonsPanel.add(btbBildLaden);
 
-        JButton btLeeren = new JButton("Sudoku-Feld leeren");
-        btLeeren.addActionListener(this::sudokuFeldLeeren);
-        bottomPanel.add(btLeeren);
+        bottomPanel.add(buttonsPanel);
 
-        JButton btSpeichern = new JButton("Sudoku speichern");
-        btSpeichern.addActionListener(this::speichern);
-        bottomPanel.add(btSpeichern);
-
-        JButton btLaden = new JButton("Sudoku laden");
-        btLaden.addActionListener(this::laden);
-        bottomPanel.add(btLaden);
+        lbWarning = new JLabel("");
+        lbWarning.setForeground(Color.RED);
+        lbWarning.setHorizontalAlignment(JLabel.CENTER);
 
         this.add(bottomPanel, BorderLayout.SOUTH);
 
@@ -75,40 +92,160 @@ public class Gui extends JFrame {
         });
     }
 
-    private void sudokuFeldLeeren(ActionEvent actionEvent) {
+    private void sudokuFeldLeeren() {
         originalInput = FieldUtilities.getEmptyField();
         updateFields(originalInput);
+        markedFields = new boolean[FIELD_SIZE][FIELD_SIZE];
+        resetGui();
     }
 
-    private void speichern(ActionEvent actionEvent) {
-        try {
-            int[][] fields = GuiParser.parse(sudokuTextFields);
-            ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(SAVE_FILENAME));
-            outputStream.writeObject(fields);
-            outputStream.close();
-        } catch (IOException | ParseExeption e) {
-            e.printStackTrace();
+    private void speichern() {
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileFilter() {
+
+            @Override
+            public String getDescription() {
+                return "Sudoku Files";
+            }
+
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".sudoku");
+            }
+        });
+
+        int state = fileChooser.showOpenDialog(this);
+        if (state == JFileChooser.APPROVE_OPTION) {
+            try {
+                int[][] fields = GuiParser.parse(sudokuTextFields);
+                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(fileChooser.getSelectedFile()));
+                outputStream.writeObject(fields);
+                outputStream.close();
+            } catch (IOException | ParseExeption e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private void laden(ActionEvent actionEvent) {
-        try {
-            ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(SAVE_FILENAME));
-            originalInput = FieldUtilities.getEmptyField();
-            updateFields((int[][]) inputStream.readObject());
-            inputStream.close();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+    private void laden() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileFilter() {
+
+            @Override
+            public String getDescription() {
+                return "Sudoku Files";
+            }
+
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".sudoku");
+            }
+        });
+
+        int state = fileChooser.showOpenDialog(this);
+        if (state == JFileChooser.APPROVE_OPTION) {
+            try {
+                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(fileChooser.getSelectedFile()));
+                originalInput = FieldUtilities.getEmptyField();
+                updateFields((int[][]) inputStream.readObject());
+                inputStream.close();
+                markedFields = new boolean[FIELD_SIZE][FIELD_SIZE];
+                resetGui();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private void solveCompleteSudoku(ActionEvent actionEvent) {
+    private void bildLaden() {
+        JFileChooser fileChooser = new JFileChooser("/home/sbernauer/Desktop/Folien/Softwareengineering/Sudoku_Loeser/Bilderkennung_Github/SnapSudoku/train");
+        fileChooser.setFileFilter(new FileFilter() {
+
+            @Override
+            public String getDescription() {
+                return "Image Files";
+            }
+
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".png") || f.getName().toLowerCase().endsWith(".jpg");
+            }
+        });
+
+        int state = fileChooser.showOpenDialog(this);
+        if (state == JFileChooser.APPROVE_OPTION) {
+            try {
+                Process p = Runtime.getRuntime().exec("python Bilderkennung_Github/SnapSudoku/sudoku.py " + fileChooser.getSelectedFile());
+                BufferedReader output = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+                // read the output from the command
+                String sudokuContents = output.readLine();
+                output.close();
+
+                int[][] field = FieldUtilities.getEmptyField();
+
+                int index = 0;
+                for (int x = 0; x < FIELD_SIZE; x++) {
+                    for (int y = 0; y < FIELD_SIZE; y++) {
+                        char c = sudokuContents.charAt(index);
+                        if ('0' <= c && c <= '9') {
+                            field[x][y] = c - '0';
+                        }
+                        index++;
+                    }
+                }
+                resetGui();
+                updateFields(field);
+                updateFields(field);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void solveCompleteSudoku() {
+        try {
+            resetGui();
+            originalInput = GuiParser.parse(sudokuTextFields);
+            int[][] result = Solver.solveComplete(originalInput, true);
+            updateFields(result);
+        } catch (ParseExeption | DoubledNumberException e) {
+            setAndDisplayErrorMessage(e);
+        }
+    }
+
+    private void direktLoesbarAnzeigen() {
         try {
             originalInput = GuiParser.parse(sudokuTextFields);
-            int[][] result = Solver.solveComplete(originalInput);
+            int[][] solvedOneStep = Solver.solveOneStep(originalInput);
+            for (int x = 0; x < FIELD_SIZE; x++) {
+                for (int y = 0; y < FIELD_SIZE; y++) {
+                    if (solvedOneStep[x][y] != originalInput[x][y]) {
+                        sudokuTextFields[x][y].setBackground(Color.GREEN);
+                    }
+                }
+            }
+        } catch (ParseExeption | DoubledNumberException e) {
+            setAndDisplayErrorMessage(e);
+        }
+    }
+
+    private void markierteFelderLoesen() {
+        try {
+            resetGui();
+            originalInput = GuiParser.parse(sudokuTextFields);
+            int[][] result = Solver.solveComplete(originalInput, false);
+            for (int x = 0; x < FIELD_SIZE; x++) {
+                for (int y = 0; y < FIELD_SIZE; y++) {
+                    if (result[x][y] != originalInput[x][y] && !markedFields[x][y]) {
+                        result[x][y] = -1;
+                    }
+                }
+            }
             updateFields(result);
-        } catch (ParseExeption parseExeption) {
-            parseExeption.printStackTrace();
+        } catch (ParseExeption | DoubledNumberException e) {
+            setAndDisplayErrorMessage(e);
         }
     }
 
@@ -118,6 +255,8 @@ public class Gui extends JFrame {
                 //Set color of field
                 if (originalInput[x][y] != -1) {
                     sudokuTextFields[x][y].setBackground(Color.LIGHT_GRAY);
+                } else if (markedFields[x][y]) {
+                    sudokuTextFields[x][y].setBackground(Color.ORANGE);
                 } else {
                     sudokuTextFields[x][y].setBackground(Color.WHITE);
                 }
@@ -149,6 +288,20 @@ public class Gui extends JFrame {
     }
 
     private void registerListenersForSudokuFields(JTextField textField, int positionX, int positionY) {
+        textField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() % 2 == 0) {
+
+                    markedFields[positionX][positionY] = !markedFields[positionX][positionY];
+                    if (markedFields[positionX][positionY]) {
+                        textField.setBackground(Color.ORANGE);
+                    } else {
+                        textField.setBackground(Color.WHITE);
+                    }
+                }
+            }
+        });
         textField.addKeyListener(new KeyAdapter() {
 
             @Override
@@ -205,13 +358,40 @@ public class Gui extends JFrame {
     }
 
     private void updateTextSize() {
+        int fontSize = (int) Math.min(getHeight() / FIELD_SIZE / 1.5, getWidth() / FIELD_SIZE / 1.5);
+        fontSize = Math.max(fontSize, 15);
         for (int x = 0; x < FIELD_SIZE; x++) {
             for (int y = 0; y < FIELD_SIZE; y++) {
-                int fontSize = (int) Math.min(getHeight() / FIELD_SIZE / 1.5, getWidth() / FIELD_SIZE / 1.5);
-                fontSize = Math.max(fontSize, 15);
                 sudokuTextFields[x][y].setFont(new Font("Arial", Font.PLAIN, fontSize));
             }
         }
     }
 
+    private void setAndDisplayErrorMessage(Exception e) {
+        bottomPanel.add(lbWarning);
+        lbWarning.setText(e.getMessage());
+        if (e instanceof DoubledNumberException) {
+            int row = ((DoubledNumberException) e).getRow();
+            int column = ((DoubledNumberException) e).getColumn();
+            sudokuTextFields[row][column].setBackground(Color.RED);
+        }
+        revalidate();
+        repaint();
+    }
+
+    private void resetGui() {
+        if (bottomPanel.getComponents().length == 2) {
+            bottomPanel.remove(bottomPanel.getComponents()[1]);
+        }
+        for (int x = 0; x < FIELD_SIZE; x++) {
+            for (int y = 0; y < FIELD_SIZE; y++) {
+                sudokuTextFields[x][y].setBackground(Color.WHITE);
+                if (markedFields[x][y]) {
+                    sudokuTextFields[x][y].setBackground(Color.ORANGE);
+                }
+            }
+        }
+        revalidate();
+        repaint();
+    }
 }

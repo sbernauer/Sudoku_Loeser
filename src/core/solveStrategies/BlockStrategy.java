@@ -16,7 +16,7 @@ public class BlockStrategy implements SolveStrategy {
                     for (int j = y; j < y + 3; j++) {
                         if (field[i][j] == -1) {
                             int result = FieldUtilities.writePossibleNumberInCell(field, i, j, missingNumbers);
-                            //TODO Abbreuch
+                            //TODO Abbruch
                             if(result != -1) {
                                 missingNumbers.remove(result);
                             }
