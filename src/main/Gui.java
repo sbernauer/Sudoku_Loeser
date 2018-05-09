@@ -53,7 +53,7 @@ public class Gui extends JFrame {
         bottomPanel = new JPanel();
         bottomPanel.setLayout(new GridLayout(0, 1, 0, 5));
         JPanel buttonsPanel = new JPanel();
-        buttonsPanel.setLayout(new GridLayout(2, 2, 10, 5));
+        buttonsPanel.setLayout(new GridLayout(0, 3, 10, 5));
         JButton btLoesen = new JButton("<html><center>Sudoku<br>lösen</center></html>");
         btLoesen.addActionListener(event1 -> solveCompleteSudoku());
         buttonsPanel.add(btLoesen);

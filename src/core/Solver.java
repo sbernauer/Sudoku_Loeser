@@ -16,7 +16,7 @@ public class Solver {
         add(new ColumnStrategy());
         add(new BlockStrategy());
         add(new MissingThirdNumberStrategy());
-//        add(new NakedSingleStrategy());
+        add(new NakedSingleStrategy());
     }};
 
     public static int[][] applyStrategies(int[][] field) {
@@ -37,21 +37,20 @@ public class Solver {
     }
 
     public static int[][] solveComplete(int[][] field, boolean askUserToUseBruteForce) {
-        field = applyStrategies(field);
-        if (askUserToUseBruteForce && !FieldUtilities.isSudokuCompletelyFilled(field)) {
+        int[][] result = applyStrategies(field);
+        if (askUserToUseBruteForce && !FieldUtilities.isSudokuCompletelyFilled(result)) {
             int choice = JOptionPane.showConfirmDialog(null,
                     "Das Sudoku konnte mit den implementierten Strategien nicht vollsändig gelöst werden.\nSoll das Sudoku mitttels Brute-Force gelöst werden?\n\n" +
-                            "Es sind " + FieldUtilities.getAmountOfEmptyFields(field) + " freie Felder zu lösen",
+                            "Es sind " + FieldUtilities.getAmountOfEmptyFields(result) + " freie Felder zu lösen",
                     "Titel", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
-                field = new BruteForcer().bruteForce(field);
+                result = new BruteForcer().bruteForce(result);
             }
         }
 
-        FieldUtilities.checkForValidSudoku(field);
-        System.out.println("Ergebnis ist valide.");
+        test(field, result);
 
-        return field;
+        return result;
     }
 
     public static int[][] solveOneStep(int[][] field) {
@@ -61,12 +60,31 @@ public class Solver {
             int[][] oneStepWithStrategie = strategy.applyTo(FieldUtilities.cloneArray(field));
             for (int x = 0; x < FIELD_SIZE; x++) {
                 for (int y = 0; y < FIELD_SIZE; y++) {
-                    if(oneStepWithStrategie[x][y] != field[x][y]) {
+                    if (oneStepWithStrategie[x][y] != field[x][y]) {
                         result[x][y] = oneStepWithStrategie[x][y];
                     }
                 }
             }
         }
+
+        test(field, result);
+
         return result;
+    }
+
+    private static void test(int[][] before, int[][] after) {
+        for (int x = 0; x < FIELD_SIZE; x++) {
+            for (int y = 0; y < FIELD_SIZE; y++) {
+                if (before[x][y] != -1 && before[x][y] != after[x][y]) {
+                    throw new RuntimeException("Test for valid sudoku failed");
+                }
+            }
+        }
+        try {
+            FieldUtilities.checkForValidSudoku(after);
+        } catch (DoubledNumberException e) {
+            throw new RuntimeException("Test for valid sudoku failed", e);
+        }
+        System.out.println("Ergebnis ist valide.");
     }
 }
