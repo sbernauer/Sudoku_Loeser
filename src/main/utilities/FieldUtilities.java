@@ -1,18 +1,20 @@
 package utilities;
 
-import core.DoubledNumberException;
+import core.exceptions.DoubledNumberException;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static main.Gui.FIELD_SIZE;
+
 public class FieldUtilities {
 
     public static final Set<Integer> ALL_NUMBERS = IntStream.range(1, 10).boxed().collect(Collectors.toSet());
 
-    public static int[][] cloneArray(int[][] source) {
-        int[][] result = new int[9][9];
+    public static int[][] cloneField(int[][] source) {
+        int[][] result = new int[FIELD_SIZE][FIELD_SIZE];
         for (int x = 0; x < 9; x++) {
             for (int y = 0; y < 9; y++) {
                 result[x][y] = source[x][y];
@@ -148,42 +150,6 @@ public class FieldUtilities {
                 getNumbersInBlock(field, x, y, true);
             }
         }
-    }
-
-    public static boolean isValidSudoku(int[][] field) {
-        try { //TODO Fix this dirty shit
-            checkForValidSudoku(field);
-            return true;
-        } catch (DoubledNumberException e) {
-            return false;
-        }
-    }
-
-    public static boolean areEqual(int[][] field1, int[][] field2) {
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (field1[i][j] != field2[i][j]) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    public static int getAmountOfEmptyFields(int[][] field) {
-        int counter = 0;
-        for (int x = 0; x < 9; x++) {
-            for (int y = 0; y < 9; y++) {
-                if (field[x][y] == -1) {
-                    counter++;
-                }
-            }
-        }
-        return counter;
-    }
-
-    public static boolean isSudokuCompletelyFilled(int[][] field) {
-        return getAmountOfEmptyFields(field) == 0;
     }
 
     public static int[][] getEmptyField() {

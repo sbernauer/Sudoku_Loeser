@@ -9,15 +9,10 @@ public class NakedSingleStrategy implements SolveStrategy {
 
     @Override
     public int[][] applyTo(int[][] field) {
-        Set<Integer> allNumbers = new HashSet<>();
-        for (int i = 1; i < 10; i++) {
-            allNumbers.add(i);
-        }
-
         for (int x = 0; x < 9; x++) {
             for (int y = 0; y < 9; y++) {
                 if (field[x][y] == -1) {
-                    Set<Integer> possibleNumbers = FieldUtilities.getPossibilitiesForField(field, x, y, allNumbers);
+                    Set<Integer> possibleNumbers = FieldUtilities.getPossibilitiesForField(field, x, y);
                     if (possibleNumbers.size() == 1) {
                         field[x][y] = possibleNumbers.iterator().next();
                     }

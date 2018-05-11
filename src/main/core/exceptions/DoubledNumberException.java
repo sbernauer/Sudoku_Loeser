@@ -1,15 +1,16 @@
-package core;
+package core.exceptions;
 
+/**
+ * Represents a doubled number in a row, column or block in the Sudoku.
+ */
 public class DoubledNumberException extends RuntimeException {
     private int row;
     private int column;
-    private int numberValue;
 
     public DoubledNumberException(int numberValue, int row, int column) {
         super("Doppelte Zahl " + numberValue + " an Position " + row + ", " + column + ".");
         this.row = row;
         this.column = column;
-        this.numberValue = numberValue;
     }
 
     public int getRow() {
@@ -18,9 +19,5 @@ public class DoubledNumberException extends RuntimeException {
 
     public int getColumn() {
         return column;
-    }
-
-    public int getNumberValue() {
-        return numberValue;
     }
 }

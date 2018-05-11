@@ -8,7 +8,6 @@ public class BlockStrategy implements SolveStrategy {
 
     @Override
     public int[][] applyTo(int[][] field) {
-
         for (int x = 0; x < 9; x += 3) {
             for (int y = 0; y < 9; y += 3) {
                 Set<Integer> missingNumbers = FieldUtilities.getMissingNumbersInBlock(field, x, y);
@@ -16,8 +15,7 @@ public class BlockStrategy implements SolveStrategy {
                     for (int j = y; j < y + 3; j++) {
                         if (field[i][j] == -1) {
                             int result = FieldUtilities.writePossibleNumberInCell(field, i, j, missingNumbers);
-                            //TODO Abbruch
-                            if(result != -1) {
+                            if (result != -1) {
                                 missingNumbers.remove(result);
                             }
                         }

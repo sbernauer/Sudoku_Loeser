@@ -35,8 +35,6 @@ public class MissingThirdNumberStrategy implements SolveStrategy {
             return;
         }
 
-        // Found 2 of this type an try to set the third...
-//        System.out.println("Found the number " + searchingNumber + "in stripe " + startY);
         int startXOfBlockWithMissingNumber;
         if (!includes.get(0)) {
             startXOfBlockWithMissingNumber = 0;
@@ -45,7 +43,7 @@ public class MissingThirdNumberStrategy implements SolveStrategy {
         } else if (!includes.get(6)) {
             startXOfBlockWithMissingNumber = 6;
         } else {
-            throw new RuntimeException("Fehler im Algorithmus");
+            return;
         }
 
         int indexYOfColumnWithMissingNumber;
@@ -67,14 +65,12 @@ public class MissingThirdNumberStrategy implements SolveStrategy {
         boolean field2 = field[startX + 1][startY] == -1 && FieldUtilities.isNumberPossibleInField(field, startX + 1, startY, searchingNumber);
         boolean field3 = field[startX + 2][startY] == -1 && FieldUtilities.isNumberPossibleInField(field, startX + 2, startY, searchingNumber);
 
-        if (field1 && !field2 && !field3) { // Number i only possible in first field
+        if (field1 && !field2 && !field3) {
             field[startX][startY] = searchingNumber;
-        } else if (!field1 && field2 && !field3) { // Number i only possible in first field
+        } else if (!field1 && field2 && !field3) {
             field[startX + 1][startY] = searchingNumber;
-        } else if (!field1 && !field2 && field3) { // Number i only possible in first field
+        } else if (!field1 && !field2 && field3) {
             field[startX + 2][startY] = searchingNumber;
-        } else if (!field1 && !field2 && !field3) {
-            throw new RuntimeException("Fehler im Algorithmus");
         }
     }
 
@@ -93,7 +89,6 @@ public class MissingThirdNumberStrategy implements SolveStrategy {
             return;
         }
 
-        // Found 2 of this type an try to set the third...
         int startYOfBlockWithMissingNumber;
         if (!includes.get(0)) {
             startYOfBlockWithMissingNumber = 0;
@@ -102,7 +97,7 @@ public class MissingThirdNumberStrategy implements SolveStrategy {
         } else if (!includes.get(6)) {
             startYOfBlockWithMissingNumber = 6;
         } else {
-            throw new RuntimeException("Fehler im Algorithmus");
+            return;
         }
 
         int indexXOfRowWithMissingNumber;
@@ -115,7 +110,6 @@ public class MissingThirdNumberStrategy implements SolveStrategy {
         } else {
             return;
         }
-//        System.out.println("Found the number " + searchingNumber + " in HORIZONTAL stripe starting at " + startX + " . Missig row is " + indexXOfRowWithMissingNumber);
 
         replaceInHorizontalStripe(field, indexXOfRowWithMissingNumber, startYOfBlockWithMissingNumber, searchingNumber);
     }
@@ -125,14 +119,12 @@ public class MissingThirdNumberStrategy implements SolveStrategy {
         boolean field2 = field[startX][startY + 1] == -1 && FieldUtilities.isNumberPossibleInField(field, startX, startY + 1, searchingNumber);
         boolean field3 = field[startX][startY + 2] == -1 && FieldUtilities.isNumberPossibleInField(field, startX, startY + 2, searchingNumber);
 
-        if (field1 && !field2 && !field3) { // Number i only possible in first field
+        if (field1 && !field2 && !field3) {
             field[startX][startY] = searchingNumber;
-        } else if (!field1 && field2 && !field3) { // Number i only possible in first field
+        } else if (!field1 && field2 && !field3) {
             field[startX][startY + 1] = searchingNumber;
-        } else if (!field1 && !field2 && field3) { // Number i only possible in first field
+        } else if (!field1 && !field2 && field3) {
             field[startX][startY + 2] = searchingNumber;
-        } else if (!field1 && !field2 && !field3) {
-            throw new RuntimeException("Fehler im Algorithmus");
         }
     }
 }

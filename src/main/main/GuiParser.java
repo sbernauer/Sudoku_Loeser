@@ -1,5 +1,6 @@
-package core;
+package main;
 
+import core.exceptions.ParseExeption;
 import utilities.FieldUtilities;
 import utilities.SudokuDigitInputVerifier;
 
@@ -34,21 +35,12 @@ public class GuiParser {
                         result[x][y] = -1;
                         break;
                     default:
-                        if (text.length() != 1 && text.length() != 0) {
-                            throw new ParseExeption("The given JtextField at position " + x + ", " + y + " had the invalid text " + textField.getText() + ". Must have the length of 1.");
-                        }
-                        try {
-                            result[x][y] = Integer.parseInt(text);
-                        } catch (NumberFormatException e) {
-                            throw new ParseExeption("The given JtextField at position " + x + ", " + y + " had the invalid text " + textField.getText() + ". Must be a digit.");
-                        }
+                        result[x][y] = Integer.parseInt(text);
                 }
             }
         }
 
-        System.out.println("Checke Eingabe...");
         FieldUtilities.checkForValidSudoku(result);
-        System.out.println("Eingabe ist valide.");
 
         return result;
     }

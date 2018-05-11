@@ -5,9 +5,7 @@ import java.io.Serializable;
 
 public class SudokuDigitInputVerifier extends InputVerifier implements Serializable {
 
-    private SudokuDigitInputVerifier() {
-
-    }
+    private SudokuDigitInputVerifier() { }
 
     private static final String REGEX = "[ 1-9]?";
     private static SudokuDigitInputVerifier instance = null;

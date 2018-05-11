@@ -1,13 +1,14 @@
 package main;
 
-import core.DoubledNumberException;
-import core.GuiParser;
-import core.ParseExeption;
-import core.Solver;
+import core.exceptions.DoubledNumberException;
+import core.exceptions.ParseExeption;
+import core.solvers.BackTrackSolver;
+import core.solvers.SingleStepSolver;
 import utilities.FieldUtilities;
 import utilities.SudokuDigitInputVerifier;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
@@ -16,14 +17,14 @@ import java.io.*;
 
 public class Gui extends JFrame {
     public static final int FIELD_SIZE = 9;
-    private static final String SAVE_FILENAME = System.getProperty("user.home") + "/sudokus/sudoku.ser";
 
     private JTextField[][] sudokuTextFields = new JTextField[FIELD_SIZE][FIELD_SIZE];
     private int[][] originalInput = FieldUtilities.getEmptyField();
     private boolean[][] markedFields = new boolean[FIELD_SIZE][FIELD_SIZE];
 
     private JPanel bottomPanel;
-    private JLabel lbWarning;
+    private JLabel lbStatus;
+    private JButton btCancel;
 
     Gui() {
         initLayout();
@@ -51,36 +52,42 @@ public class Gui extends JFrame {
         this.add(sudokuPanel, BorderLayout.CENTER);
 
         bottomPanel = new JPanel();
-        bottomPanel.setLayout(new GridLayout(0, 1, 0, 5));
+        bottomPanel.setLayout(new BorderLayout());
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new GridLayout(0, 3, 10, 5));
         JButton btLoesen = new JButton("<html><center>Sudoku<br>lösen</center></html>");
         btLoesen.addActionListener(event1 -> solveCompleteSudoku());
         buttonsPanel.add(btLoesen);
         JButton btMarkierteFelderLoesen = new JButton("<html><center>Markierte Felder<br>lösen</center></html>");
-        btMarkierteFelderLoesen.addActionListener(event2 -> markierteFelderLoesen());
+        btMarkierteFelderLoesen.addActionListener(event2 -> solveMarkedFields());
         buttonsPanel.add(btMarkierteFelderLoesen);
         JButton btDirektLoesbarAnzeigen = new JButton("<html><center>Direkt berechenbare<br>Felder anzeigen</center></html>");
-        btDirektLoesbarAnzeigen.addActionListener(event1 -> direktLoesbarAnzeigen());
+        btDirektLoesbarAnzeigen.addActionListener(event1 -> showDirectlySolvable());
         buttonsPanel.add(btDirektLoesbarAnzeigen);
         JButton btLeeren = new JButton("<html><center>Sudoku-Feld<br>leeren</center></html>");
-        btLeeren.addActionListener(event -> sudokuFeldLeeren());
+        btLeeren.addActionListener(event -> emptySudokuField());
         buttonsPanel.add(btLeeren);
-        JButton btSpeichern = new JButton("<html><center>Sudoku<br>speichern</center></html>");
-        btSpeichern.addActionListener(event -> speichern());
+        JButton btSpeichern = new JButton("<html><center>Sudoku<br>speichern...</center></html>");
+        btSpeichern.addActionListener(event -> saveToFile());
         buttonsPanel.add(btSpeichern);
-        JButton btLaden = new JButton("<html><center>Sudoku<br>laden</center></html>");
-        btLaden.addActionListener(event -> laden());
+        JButton btLaden = new JButton("<html><center>Sudoku<br>laden...</center></html>");
+        btLaden.addActionListener(event -> loadFromFile());
         buttonsPanel.add(btLaden);
-        JButton btbBildLaden = new JButton("<html><center>Sudoku von<br>Bild laden</center></html>");
-        btbBildLaden.addActionListener(event -> bildLaden());
+        buttonsPanel.add(new JLabel());
+        JButton btbBildLaden = new JButton("<html><center>Sudoku von<br>Bild laden...</center></html>");
+        btbBildLaden.addActionListener(event -> loadImage());
         buttonsPanel.add(btbBildLaden);
 
+        buttonsPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
         bottomPanel.add(buttonsPanel);
 
-        lbWarning = new JLabel("");
-        lbWarning.setForeground(Color.RED);
-        lbWarning.setHorizontalAlignment(JLabel.CENTER);
+        JPanel statusPanel = new JPanel();
+        statusPanel.setLayout(new BorderLayout());
+        lbStatus = new JLabel("Bereit");
+        lbStatus.setBorder(new MatteBorder(1, 0, 0, 0, Color.BLACK));
+        statusPanel.add(lbStatus);
+
+        bottomPanel.add(statusPanel, BorderLayout.SOUTH);
 
         this.add(bottomPanel, BorderLayout.SOUTH);
 
@@ -92,34 +99,20 @@ public class Gui extends JFrame {
         });
     }
 
-    private void sudokuFeldLeeren() {
+    private void emptySudokuField() {
         originalInput = FieldUtilities.getEmptyField();
         updateFields(originalInput);
         markedFields = new boolean[FIELD_SIZE][FIELD_SIZE];
         resetGui();
     }
 
-    private void speichern() {
+    private void saveToFile() {
+        File file = askUserForSudokuFilePath();
 
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileFilter() {
-
-            @Override
-            public String getDescription() {
-                return "Sudoku Files";
-            }
-
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".sudoku");
-            }
-        });
-
-        int state = fileChooser.showOpenDialog(this);
-        if (state == JFileChooser.APPROVE_OPTION) {
+        if (file != null) {
             try {
                 int[][] fields = GuiParser.parse(sudokuTextFields);
-                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(fileChooser.getSelectedFile()));
+                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(file));
                 outputStream.writeObject(fields);
                 outputStream.close();
             } catch (IOException | ParseExeption e) {
@@ -128,25 +121,12 @@ public class Gui extends JFrame {
         }
     }
 
-    private void laden() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileFilter() {
+    private void loadFromFile() {
+        File file = askUserForSudokuFilePath();
 
-            @Override
-            public String getDescription() {
-                return "Sudoku Files";
-            }
-
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".sudoku");
-            }
-        });
-
-        int state = fileChooser.showOpenDialog(this);
-        if (state == JFileChooser.APPROVE_OPTION) {
+        if (file != null) {
             try {
-                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(fileChooser.getSelectedFile()));
+                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file));
                 originalInput = FieldUtilities.getEmptyField();
                 updateFields((int[][]) inputStream.readObject());
                 inputStream.close();
@@ -158,7 +138,32 @@ public class Gui extends JFrame {
         }
     }
 
-    private void bildLaden() {
+    /**
+     * @return the file selected by the user or null if the user has canceled the selection
+     */
+    private File askUserForSudokuFilePath() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileFilter(new FileFilter() {
+
+            @Override
+            public String getDescription() {
+                return "Sudoku Files";
+            }
+
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".sudoku");
+            }
+        });
+
+        int state = fileChooser.showOpenDialog(this);
+        if (state == JFileChooser.APPROVE_OPTION) {
+            return fileChooser.getSelectedFile();
+        }
+        return null;
+    }
+
+    private void loadImage() {
         JFileChooser fileChooser = new JFileChooser("/home/sbernauer/Desktop/Folien/Softwareengineering/Sudoku_Loeser/Bilderkennung_Github/SnapSudoku/train");
         fileChooser.setFileFilter(new FileFilter() {
 
@@ -179,7 +184,6 @@ public class Gui extends JFrame {
                 Process p = Runtime.getRuntime().exec("python Bilderkennung_Github/SnapSudoku/sudoku.py " + fileChooser.getSelectedFile());
                 BufferedReader output = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-                // read the output from the command
                 String sudokuContents = output.readLine();
                 output.close();
 
@@ -207,18 +211,21 @@ public class Gui extends JFrame {
     private void solveCompleteSudoku() {
         try {
             resetGui();
+            long startingTime = System.currentTimeMillis();
             originalInput = GuiParser.parse(sudokuTextFields);
-            int[][] result = Solver.solveComplete(originalInput, true);
+            int[][] result = BackTrackSolver.solveComplete(originalInput);
             updateFields(result);
+            displayStatusMessage("Sudoku wurde in " + (System.currentTimeMillis() - startingTime) + " ms gelöst");
         } catch (ParseExeption | DoubledNumberException e) {
-            setAndDisplayErrorMessage(e);
+            displayStatusMessage(e);
         }
     }
 
-    private void direktLoesbarAnzeigen() {
+    private void showDirectlySolvable() {
         try {
+            long startingTime = System.currentTimeMillis();
             originalInput = GuiParser.parse(sudokuTextFields);
-            int[][] solvedOneStep = Solver.solveOneStep(originalInput);
+            int[][] solvedOneStep = SingleStepSolver.solveOneStep(originalInput);
             for (int x = 0; x < FIELD_SIZE; x++) {
                 for (int y = 0; y < FIELD_SIZE; y++) {
                     if (solvedOneStep[x][y] != originalInput[x][y]) {
@@ -226,16 +233,18 @@ public class Gui extends JFrame {
                     }
                 }
             }
+            displayStatusMessage("Direkt lösbare Felder wurden in " + (System.currentTimeMillis() - startingTime) + " ms angezeigt");
         } catch (ParseExeption | DoubledNumberException e) {
-            setAndDisplayErrorMessage(e);
+            displayStatusMessage(e);
         }
     }
 
-    private void markierteFelderLoesen() {
+    private void solveMarkedFields() {
         try {
             resetGui();
+            long startingTime = System.currentTimeMillis();
             originalInput = GuiParser.parse(sudokuTextFields);
-            int[][] result = Solver.solveComplete(originalInput, false);
+            int[][] result = BackTrackSolver.solveComplete(originalInput);
             for (int x = 0; x < FIELD_SIZE; x++) {
                 for (int y = 0; y < FIELD_SIZE; y++) {
                     if (result[x][y] != originalInput[x][y] && !markedFields[x][y]) {
@@ -244,15 +253,16 @@ public class Gui extends JFrame {
                 }
             }
             updateFields(result);
+            displayStatusMessage("Markierte Felder wurden in " + (System.currentTimeMillis() - startingTime) + " ms gelöst");
         } catch (ParseExeption | DoubledNumberException e) {
-            setAndDisplayErrorMessage(e);
+            displayStatusMessage(e);
         }
     }
 
     private void updateFields(int[][] result) {
         for (int x = 0; x < FIELD_SIZE; x++) {
             for (int y = 0; y < FIELD_SIZE; y++) {
-                //Set color of field
+
                 if (originalInput[x][y] != -1) {
                     sudokuTextFields[x][y].setBackground(Color.LIGHT_GRAY);
                 } else if (markedFields[x][y]) {
@@ -260,7 +270,7 @@ public class Gui extends JFrame {
                 } else {
                     sudokuTextFields[x][y].setBackground(Color.WHITE);
                 }
-                // Set number of field
+
                 if (result[x][y] == -1) {
                     sudokuTextFields[x][y].setText("");
                 } else {
@@ -367,22 +377,24 @@ public class Gui extends JFrame {
         }
     }
 
-    private void setAndDisplayErrorMessage(Exception e) {
-        bottomPanel.add(lbWarning);
-        lbWarning.setText(e.getMessage());
+    public void displayStatusMessage(Exception e) {
+        lbStatus.setText(e.getMessage());
         if (e instanceof DoubledNumberException) {
             int row = ((DoubledNumberException) e).getRow();
             int column = ((DoubledNumberException) e).getColumn();
             sudokuTextFields[row][column].setBackground(Color.RED);
         }
-        revalidate();
         repaint();
     }
 
+    public void displayStatusMessage(String message) {
+        lbStatus.setText(message);
+        repaint();
+    }
+
+
     private void resetGui() {
-        if (bottomPanel.getComponents().length == 2) {
-            bottomPanel.remove(bottomPanel.getComponents()[1]);
-        }
+        lbStatus.setText("Bereit");
         for (int x = 0; x < FIELD_SIZE; x++) {
             for (int y = 0; y < FIELD_SIZE; y++) {
                 sudokuTextFields[x][y].setBackground(Color.WHITE);
@@ -391,7 +403,6 @@ public class Gui extends JFrame {
                 }
             }
         }
-        revalidate();
         repaint();
     }
 }
