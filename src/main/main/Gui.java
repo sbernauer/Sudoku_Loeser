@@ -61,7 +61,7 @@ public class Gui extends JFrame {
         JButton btMarkierteFelderLoesen = new JButton("<html><center>Markierte Felder<br>lösen</center></html>");
         btMarkierteFelderLoesen.addActionListener(event2 -> solveMarkedFields());
         buttonsPanel.add(btMarkierteFelderLoesen);
-        JButton btDirektLoesbarAnzeigen = new JButton("<html><center>Direkt berechenbare<br>Felder anzeigen</center></html>");
+        JButton btDirektLoesbarAnzeigen = new JButton("<html><center>Direkt lösbare<br>Felder anzeigen</center></html>");
         btDirektLoesbarAnzeigen.addActionListener(event1 -> showDirectlySolvable());
         buttonsPanel.add(btDirektLoesbarAnzeigen);
         JButton btLeeren = new JButton("<html><center>Sudoku-Feld<br>leeren</center></html>");
@@ -226,14 +226,16 @@ public class Gui extends JFrame {
             long startingTime = System.currentTimeMillis();
             originalInput = GuiParser.parse(sudokuTextFields);
             int[][] solvedOneStep = SingleStepSolver.solveOneStep(originalInput);
+            int counterMarkedFields = 0;
             for (int x = 0; x < FIELD_SIZE; x++) {
                 for (int y = 0; y < FIELD_SIZE; y++) {
                     if (solvedOneStep[x][y] != originalInput[x][y]) {
                         sudokuTextFields[x][y].setBackground(Color.GREEN);
+                        counterMarkedFields++;
                     }
                 }
             }
-            displayStatusMessage("Direkt lösbare Felder wurden in " + (System.currentTimeMillis() - startingTime) + " ms angezeigt");
+            displayStatusMessage(counterMarkedFields + " direkt lösbare Felder wurden in " + (System.currentTimeMillis() - startingTime) + " ms angezeigt");
         } catch (ParseExeption | DoubledNumberException e) {
             displayStatusMessage(e);
         }
