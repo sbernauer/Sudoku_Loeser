@@ -2,6 +2,7 @@ package main;
 
 import core.exceptions.DoubledNumberException;
 import core.exceptions.ParseExeption;
+import core.persistance.SaveAndLoadSudokuField;
 import core.solvers.BackTrackSolver;
 import core.solvers.SingleStepSolver;
 import utilities.FieldUtilities;
@@ -13,7 +14,10 @@ import javax.swing.border.MatteBorder;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class Gui extends JFrame {
     public static final int FIELD_SIZE = 9;
@@ -107,60 +111,23 @@ public class Gui extends JFrame {
     }
 
     private void saveToFile() {
-        File file = askUserForSudokuFilePath();
-
-        if (file != null) {
-            try {
-                int[][] fields = GuiParser.parse(sudokuTextFields);
-                ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(file));
-                outputStream.writeObject(fields);
-                outputStream.close();
-            } catch (IOException | ParseExeption e) {
-                e.printStackTrace();
-            }
+        try {
+            SaveAndLoadSudokuField.saveToFile(GuiParser.parse(sudokuTextFields));
+        } catch (IOException | ParseExeption e) {
+            e.printStackTrace();
         }
     }
 
     private void loadFromFile() {
-        File file = askUserForSudokuFilePath();
 
-        if (file != null) {
-            try {
-                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file));
-                originalInput = FieldUtilities.getEmptyField();
-                updateFields((int[][]) inputStream.readObject());
-                inputStream.close();
-                markedFields = new boolean[FIELD_SIZE][FIELD_SIZE];
-                resetGui();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+        try {
+            originalInput = FieldUtilities.getEmptyField();
+            updateFields(SaveAndLoadSudokuField.loadFromFile());
+            markedFields = new boolean[FIELD_SIZE][FIELD_SIZE];
+            resetGui();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-    }
-
-    /**
-     * @return the file selected by the user or null if the user has canceled the selection
-     */
-    private File askUserForSudokuFilePath() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new FileFilter() {
-
-            @Override
-            public String getDescription() {
-                return "Sudoku Files";
-            }
-
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".sudoku");
-            }
-        });
-
-        int state = fileChooser.showOpenDialog(this);
-        if (state == JFileChooser.APPROVE_OPTION) {
-            return fileChooser.getSelectedFile();
-        }
-        return null;
     }
 
     private void loadImage() {
