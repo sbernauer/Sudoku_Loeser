@@ -1,0 +1,19 @@
+Installation:
+================
+Es wird Maven benötigt.
+Es wir Java in der Version >= 8 benötigt. Entwickelt wurde die Applikation in Java 8.
+
+Für die Verwendung von der Bilderkunng muss zusätzlich folgendes installiert sein:
+- python2
+	sudo apt install python
+- opencv
+	sudo apt install pip && sudo pip install opencv-python
+
+Ausführen:
+================
+mvn exec:java
+Alternativ:		mvn package && java -jar target/sudokuloeser-1.0.jar
+
+Testen:
+================
+mvn test

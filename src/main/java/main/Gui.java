@@ -154,6 +154,11 @@ public class Gui extends JFrame {
                 String sudokuContents = output.readLine();
                 output.close();
 
+                if(sudokuContents == null) {
+                    displayStatusMessage("Das angegebende Bild konnte nicht als Sudoku erkannt werden");
+                    return;
+                }
+
                 int[][] field = FieldUtilities.getEmptyField();
 
                 int index = 0;

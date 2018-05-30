@@ -31,6 +31,7 @@ public class FieldUtilities {
             }
             foundNumbers.add(field[row][i]);
         }
+        foundNumbers.remove(-1);
         return foundNumbers;
     }
 
@@ -42,6 +43,7 @@ public class FieldUtilities {
             }
             foundNumbers.add(field[i][column]);
         }
+        foundNumbers.remove(-1);
         return foundNumbers;
     }
 
@@ -58,6 +60,7 @@ public class FieldUtilities {
                 foundNumbers.add(field[x][y]);
             }
         }
+        foundNumbers.remove(-1);
         return foundNumbers;
     }
 
