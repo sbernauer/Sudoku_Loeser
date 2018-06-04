@@ -1,6 +1,7 @@
 package utilities;
 
 import core.exceptions.DoubledNumberException;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -15,6 +16,9 @@ public class FieldUtilitiesTest {
 
     @Test
     public void cloneField() {
+        int[][] clonedField = FieldUtilities.cloneField(VALID_SAMPLE);
+        assert(VALID_SAMPLE != clonedField);
+        assertEquals(VALID_SAMPLE, clonedField);
     }
 
     @Test
