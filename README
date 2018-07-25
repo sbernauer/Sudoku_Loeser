@@ -15,7 +15,7 @@ Ausführen:
 ================
 mvn exec:java
 Alternativ:		mvn package && java -jar target/sudokuloeser-1.0.jar
-
+Ohne die Verwendung von Maven: java -jar target/sudokuloeser-1.0.jar
 
 Tests ausführen:
 ================
