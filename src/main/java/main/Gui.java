@@ -2,7 +2,10 @@ package main;
 
 import core.exceptions.DoubledNumberException;
 import core.exceptions.ParseExeption;
-import core.persistance.SaveAndLoadSudokuField;
+import core.imageRecognition.ImageRegcognicer;
+import core.imageRecognition.NoSudokuInImageFoundException;
+import core.imageRecognition.PythonSnapSudoku;
+import core.persistance.SudokuFieldSaveFile;
 import core.solvers.BackTrackSolver;
 import core.solvers.SingleStepSolver;
 import utilities.FieldUtilities;
@@ -29,6 +32,8 @@ public class Gui extends JFrame {
     private JPanel bottomPanel;
     private JLabel lbStatus;
     private JButton btCancel;
+
+    private ImageRegcognicer imageRegcognicer = new PythonSnapSudoku();
 
     Gui() {
         initLayout();
@@ -112,7 +117,7 @@ public class Gui extends JFrame {
 
     private void saveToFile() {
         try {
-            SaveAndLoadSudokuField.saveToFile(GuiParser.parse(sudokuTextFields));
+            SudokuFieldSaveFile.saveToFile(GuiParser.parse(sudokuTextFields));
         } catch (IOException | ParseExeption e) {
             e.printStackTrace();
         }
@@ -122,7 +127,7 @@ public class Gui extends JFrame {
 
         try {
             originalInput = FieldUtilities.getEmptyField();
-            updateFields(SaveAndLoadSudokuField.loadFromFile());
+            updateFields(SudokuFieldSaveFile.loadFromFile());
             markedFields = new boolean[FIELD_SIZE][FIELD_SIZE];
             resetGui();
         } catch (IOException | ClassNotFoundException e) {
@@ -148,34 +153,14 @@ public class Gui extends JFrame {
         int state = fileChooser.showOpenDialog(this);
         if (state == JFileChooser.APPROVE_OPTION) {
             try {
-                Process p = Runtime.getRuntime().exec("python Bilderkennung_Github/SnapSudoku/sudoku.py " + fileChooser.getSelectedFile());
-                BufferedReader output = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-                String sudokuContents = output.readLine();
-                output.close();
-
-                if(sudokuContents == null) {
-                    displayStatusMessage("Das angegebende Bild konnte nicht als Sudoku erkannt werden");
-                    return;
-                }
-
-                int[][] field = FieldUtilities.getEmptyField();
-
-                int index = 0;
-                for (int x = 0; x < FIELD_SIZE; x++) {
-                    for (int y = 0; y < FIELD_SIZE; y++) {
-                        char c = sudokuContents.charAt(index);
-                        if ('0' <= c && c <= '9') {
-                            field[x][y] = c - '0';
-                        }
-                        index++;
-                    }
-                }
+                int[][] field = imageRegcognicer.regocniceFromImage(fileChooser.getSelectedFile().toString());
                 resetGui();
                 updateFields(field);
                 updateFields(field);
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (NoSudokuInImageFoundException e) {
+                displayStatusMessage("Das angegebende Bild konnte nicht als Sudoku erkannt werden");
             }
         }
     }
@@ -189,7 +174,7 @@ public class Gui extends JFrame {
             updateFields(result);
             displayStatusMessage("Sudoku wurde in " + (System.currentTimeMillis() - startingTime) + " ms gelöst");
         } catch (ParseExeption | DoubledNumberException e) {
-            displayStatusMessage(e);
+            displayStatusMessageAndMarkDoubledFields(e);
         }
     }
 
@@ -209,7 +194,7 @@ public class Gui extends JFrame {
             }
             displayStatusMessage(counterMarkedFields + " direkt lösbare Felder wurden in " + (System.currentTimeMillis() - startingTime) + " ms angezeigt");
         } catch (ParseExeption | DoubledNumberException e) {
-            displayStatusMessage(e);
+            displayStatusMessageAndMarkDoubledFields(e);
         }
     }
 
@@ -229,7 +214,7 @@ public class Gui extends JFrame {
             updateFields(result);
             displayStatusMessage("Markierte Felder wurden in " + (System.currentTimeMillis() - startingTime) + " ms gelöst");
         } catch (ParseExeption | DoubledNumberException e) {
-            displayStatusMessage(e);
+            displayStatusMessageAndMarkDoubledFields(e);
         }
     }
 
@@ -351,22 +336,34 @@ public class Gui extends JFrame {
         }
     }
 
-    public void displayStatusMessage(Exception e) {
-        lbStatus.setText(e.getMessage());
-        if (e instanceof DoubledNumberException) {
-            int row = ((DoubledNumberException) e).getRow();
-            int column = ((DoubledNumberException) e).getColumn();
+    /**
+     * Displays the Message of the exception in the status bar
+     * if the given exception ist a DoubledNumberException it marks the field, that contains the doubled value, red
+     * @param exeption the exception to display
+     */
+    public void displayStatusMessageAndMarkDoubledFields(Exception exeption) {
+        lbStatus.setText(exeption.getMessage());
+        if (exeption instanceof DoubledNumberException) {
+            int row = ((DoubledNumberException) exeption).getRow();
+            int column = ((DoubledNumberException) exeption).getColumn();
             sudokuTextFields[row][column].setBackground(Color.RED);
         }
         repaint();
     }
 
+    /**
+     * Displays the Message in the status bar
+     * @param message the message to display
+     */
     public void displayStatusMessage(String message) {
         lbStatus.setText(message);
         repaint();
     }
 
-
+    /**
+     * Displays "Bereit" in the status bar
+     * Clears the color of the sudoku-field
+     */
     private void resetGui() {
         lbStatus.setText("Bereit");
         for (int x = 0; x < FIELD_SIZE; x++) {

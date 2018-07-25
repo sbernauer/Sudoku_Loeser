@@ -4,6 +4,9 @@ import utilities.FieldUtilities;
 
 import java.util.Set;
 
+/**
+ * Searches for a missing number in a column
+ */
 public class ColumnStrategy implements SolveStrategy {
 
     @Override
@@ -12,7 +15,7 @@ public class ColumnStrategy implements SolveStrategy {
             Set<Integer> missingNumbers = FieldUtilities.getMissingNumbersInColumn(field, y);
             for (int x = 0; x < 9; x++) {
                 if (field[x][y] == -1) {
-                    FieldUtilities.writePossibleNumberInCell(field, x, y, missingNumbers);
+                    FieldUtilities.writePossibleNumberInField(field, x, y, missingNumbers);
                 }
             }
         }

@@ -4,7 +4,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.io.*;
 
-public class SaveAndLoadSudokuField {
+public class SudokuFieldSaveFile {
 
     public static boolean saveToFile(int[][] fields) throws IOException {
         File file = askUserForSudokuFilePath();

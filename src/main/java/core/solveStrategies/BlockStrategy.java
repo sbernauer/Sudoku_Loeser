@@ -4,6 +4,9 @@ import utilities.FieldUtilities;
 
 import java.util.Set;
 
+/**
+ * Searches for a missing number in a block
+ */
 public class BlockStrategy implements SolveStrategy {
 
     @Override
@@ -14,7 +17,7 @@ public class BlockStrategy implements SolveStrategy {
                 for (int i = x; i < x + 3; i++) {
                     for (int j = y; j < y + 3; j++) {
                         if (field[i][j] == -1) {
-                            int result = FieldUtilities.writePossibleNumberInCell(field, i, j, missingNumbers);
+                            int result = FieldUtilities.writePossibleNumberInField(field, i, j, missingNumbers);
                             if (result != -1) {
                                 missingNumbers.remove(result);
                             }

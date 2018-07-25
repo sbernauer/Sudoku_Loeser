@@ -23,6 +23,12 @@ public class FieldUtilities {
         return result;
     }
 
+    /**
+     * @param field the given sudoku-field
+     * @param row the row were the numbers are calculated from
+     * @param checkForDuplicates if true it throws a DoubledNumberException when a number is doubled in this row
+     * @return Set of Numbers in this row
+     */
     public static Set<Integer> getNumbersInRow(int[][] field, int row, boolean checkForDuplicates) {
         Set<Integer> foundNumbers = new HashSet<>();
         for (int i = 0; i < 9; i++) {
@@ -35,6 +41,12 @@ public class FieldUtilities {
         return foundNumbers;
     }
 
+    /**
+     * @param field the given sudoku-field
+     * @param column the column were the numbers are calculated from
+     * @param checkForDuplicates if true it throws a DoubledNumberException when a number is doubled in this column
+     * @return Set of Numbers in this column
+     */
     public static Set<Integer> getNumbersInColumn(int[][] field, int column, boolean checkForDuplicates) {
         Set<Integer> foundNumbers = new HashSet<>();
         for (int i = 0; i < 9; i++) {
@@ -47,13 +59,20 @@ public class FieldUtilities {
         return foundNumbers;
     }
 
-    public static Set<Integer> getNumbersInBlock(int[][] field, int startX, int startY, boolean checkForDuplicates) {
-        int blockStartX = (int) (startX / 3) * 3;
-        int blockStartY = (int) (startY / 3) * 3;
+    /**
+     * @param field the given sudoku-field
+     * @param positionX the x-Coordinate of any point in the block
+     * @param positionY the y-Coordinate of any point in the block
+     * @param checkForDuplicates if true it throws a DoubledNumberException when a number is doubled in this block
+     * @return Set of Numbers in this block
+     */
+    public static Set<Integer> getNumbersInBlock(int[][] field, int positionX, int positionY, boolean checkForDuplicates) {
+        int startX = (int) (positionX / 3) * 3;
+        int startY = (int) (positionY / 3) * 3;
 
         Set<Integer> foundNumbers = new HashSet<>();
-        for (int x = blockStartX; x < blockStartX + 3; x++) {
-            for (int y = blockStartY; y < blockStartY + 3; y++) {
+        for (int x = startX; x < startX + 3; x++) {
+            for (int y = startY; y < startY + 3; y++) {
                 if (checkForDuplicates && field[x][y] != -1 && foundNumbers.contains(field[x][y])) {
                     throw new DoubledNumberException(field[x][y], x, y);
                 }
@@ -64,6 +83,11 @@ public class FieldUtilities {
         return foundNumbers;
     }
 
+    /**
+     * @param field the given sudoku-field
+     * @param row the row were the missing numbers are calculated from
+     * @return Set of Numbers that are missing in this row
+     */
     public static Set<Integer> getMissingNumbersInRow(int[][] field, int row) {
         Set<Integer> foundNumbers = getNumbersInRow(field, row, false);
         Set<Integer> missingNumbers = new HashSet<>();
@@ -75,8 +99,13 @@ public class FieldUtilities {
         return missingNumbers;
     }
 
-    public static Set<Integer> getMissingNumbersInColumn(int[][] field, int row) {
-        Set<Integer> foundNumbers = getNumbersInColumn(field, row, false);
+    /**
+     * @param field the given sudoku-field
+     * @param column the column were the missing numbers are calculated from
+     * @return Set of Numbers that are missing in this column
+     */
+    public static Set<Integer> getMissingNumbersInColumn(int[][] field, int column) {
+        Set<Integer> foundNumbers = getNumbersInColumn(field, column, false);
         Set<Integer> missingNumbers = new HashSet<>();
         for (int i = 1; i < 10; i++) {
             if (!foundNumbers.contains(i)) {
@@ -86,6 +115,12 @@ public class FieldUtilities {
         return missingNumbers;
     }
 
+    /**
+     * @param field the given sudoku-field
+     * @param positionX the x-Coordinate of any point in the block
+     * @param positionY the y-Coordinate of any point in the block
+     * @return Set of Numbers that are missing in this block
+     */
     public static Set<Integer> getMissingNumbersInBlock(int[][] field, int positionX, int positionY) {
         Set<Integer> foundNumbers = getNumbersInBlock(field, positionX, positionY, false);
         Set<Integer> missingNumbers = new HashSet<>();
@@ -98,23 +133,32 @@ public class FieldUtilities {
     }
 
     /**
-     * @param field
-     * @param x
-     * @param y
-     * @param possibleNumbers
+     * Takes a Set of numbers that should be inserted into a field.
+     * It only inserts the Number if it's the only possible number in this field.
+     * @param field the given sudoku-field
+     * @param positionX the x-Coordinate of the field where the number should be inserted
+     * @param positionY the y-Coordinate of the field where the number should be inserted
+     * @param possibleNumbers the numbers that should be tried to be inserted into the field
      * @return -1 if no fitting number was found, otherwise the number that was put in the field
      */
-    public static int writePossibleNumberInCell(int[][] field, int x, int y, Set<Integer> possibleNumbers) {
-        Set<Integer> possibilities = getPossibilitiesForField(field, x, y, possibleNumbers);
+    public static int writePossibleNumberInField(int[][] field, int positionX, int positionY, Set<Integer> possibleNumbers) {
+        Set<Integer> possibilities = getPossibilitiesForField(field, positionX, positionY, possibleNumbers);
 
         if (possibilities.size() == 1) {
             int number = possibilities.iterator().next();
-            field[x][y] = number;
+            field[positionX][positionY] = number;
             return number;
         }
         return -1;
     }
 
+    /**
+     * @param field the given sudoku-field
+     * @param positionX the x-Coordinate of the field
+     * @param positionY the y-Coordinate of the field
+     * @param possibleNumbers the numbers that should be tried to be inserted into the field
+     * @return All numbers that are possible in this field
+     */
     public static Set<Integer> getPossibilitiesForField(int[][] field, int positionX, int positionY, Set<Integer> possibleNumbers) {
         Set<Integer> result = new HashSet<>();
         result.addAll(possibleNumbers);
@@ -129,6 +173,12 @@ public class FieldUtilities {
         return result;
     }
 
+    /**
+     * @param field the given sudoku-field
+     * @param positionX the x-Coordinate of the field
+     * @param positionY the y-Coordinate of the field
+     * @return All numbers that are possible in this field
+     */
     public static Set<Integer> getPossibilitiesForField(int[][] field, int positionX, int positionY) {
         return getPossibilitiesForField(field, positionX, positionY, ALL_NUMBERS);
     }

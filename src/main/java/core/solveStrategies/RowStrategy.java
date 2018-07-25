@@ -4,6 +4,9 @@ import utilities.FieldUtilities;
 
 import java.util.Set;
 
+/**
+ * Searches for a missing number in a row
+ */
 public class RowStrategy implements SolveStrategy {
 
     @Override
@@ -12,7 +15,7 @@ public class RowStrategy implements SolveStrategy {
             Set<Integer> missingNumbers = FieldUtilities.getMissingNumbersInRow(field, x);
             for (int y = 0; y < 9; y++) {
                 if (field[x][y] == -1) {
-                    FieldUtilities.writePossibleNumberInCell(field, x, y, missingNumbers);
+                    FieldUtilities.writePossibleNumberInField(field, x, y, missingNumbers);
                 }
             }
         }

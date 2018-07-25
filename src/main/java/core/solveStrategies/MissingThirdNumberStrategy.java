@@ -5,6 +5,9 @@ import utilities.FieldUtilities;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A description of this strategy is given at http://www.sudokudragon.com/tutorialtwooutofthree.htm
+ */
 public class MissingThirdNumberStrategy implements SolveStrategy {
 
     @Override

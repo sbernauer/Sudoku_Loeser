@@ -22,7 +22,7 @@ public class BackTrackSolver {
     }
 
     /**
-     * Solves the given field in place!
+     * Solves the given field in place
      *
      * @param x     the x-Coorinate of the cell were the backtraking starts. Normally this is "0"
      * @param y     the y-Coorinate of the cell were the backtraking starts. Normally this is "0"

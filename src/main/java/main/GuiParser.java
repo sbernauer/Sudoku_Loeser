@@ -23,7 +23,7 @@ public class GuiParser {
             for (int y = 0; y < FIELD_SIZE; y++) {
                 JTextField textField = sudokuFields[x][y];
                 if (textField == null) {
-                    throw new IllegalArgumentException("The given JtextField from the sudokuFelds was null");
+                    throw new IllegalArgumentException("The given JtextField at " + x + "; " + y + " from the sudokuFelds was null");
                 }
                 if (!sudokuDigitInputVerifier.verify(textField)) {
                     throw new ParseExeption("The given JtextField at position " + x + ", " + y + " had the invalid text " + textField.getText());

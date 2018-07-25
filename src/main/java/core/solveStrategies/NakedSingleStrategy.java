@@ -5,6 +5,10 @@ import utilities.FieldUtilities;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Iterates over all fileds of the sudoku.
+ * If in a field only one n umber is possible it gets inserted.
+ */
 public class NakedSingleStrategy implements SolveStrategy {
 
     @Override
